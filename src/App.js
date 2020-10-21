@@ -1,8 +1,10 @@
-import React from "react";
+import React, {useEffect} from "react";
 import "./App.css";
 import Fingerprint2 from "fingerprintjs2";
 import { Table, Container, Row, Col, Navbar } from "react-bootstrap";
+import firebase from  'firebase';
 import "bootstrap/dist/css/bootstrap.min.css";
+import {v4 as uuidv4} from 'uuid';
 import SessionDetails from "./SessionDetails";
 const browserSpecificKey = [
   "userAgent",
@@ -102,14 +104,51 @@ const displaySettings = [
   },
 ];
 
+const serviceAccount  = {
+  type: "service_account",
+  projectId: "tets-46786",
+  privateKeyId: "dada08d72196d8adee027422f51d8637a162536f",
+  private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCUYSztIg0k4ny5\nvunxVu5em9ABR9Zo8JdDtJKnBmTCzHjETJ2bwjHFPdsldv05Wio0evtHT9fKVXSn\n+Rk9ViXwD9XVz6r/1L37Nhj9iH+1GGGrn+4WhhitQVoqWQNSA/9xWvNWQMyuiOaX\ngN/llBZJJcoqeIECiMFI/699c77fj0Gn2FYrR8qnVKNIGjloyyyNm4d+Cv1QU3nj\nGyWyQTsl+FtS2qtUW9vYNMvpzJreqr3D8p9YXkkVsn0L8DQrjtxL78n4zoIk0pFp\nNoskVu+mGUHXhahaXpzfxNtjYM0WPD2XGUJPIWdW/95et8Xf+9pPfff/c4+basvS\nY3Auk//JAgMBAAECggEABCLtYLL5UNTrizYSSYMV5BdN5is9g/FpFh8bk4JvHqsa\nlsZYAnaYcpo12MaHaqjj0lC3XpaQOnjFZsVf+cDED/wxBuPiLX2dyjoI2lCK1t6W\nInWz6nbUi0fuHo4atJed8GgLrpTh39+7JfAWzcyiDmn6R9LSLeLoGIPgPYwTfyHx\nWz0n/dJkfLHzXU1RVSjLSlnIyC/uXxT9DbjryyKJrkq4kiHUe7qE+XF/G5XNA+iO\n0hnqq0P5llDLBDS3jdIMkoV8VxT7Z4Zsd871mhzYAXDR44qlWZHM4SU9Xazog8MY\n36yYnVrgnvQEREMJZjarKCCP3r98jjC2OwjwV0qKgQKBgQDQtUoHd5wJWKDPKF5O\n1dPUKZ3gvJKNmIf/En50Hw9Yy7wYR+BfCcE4//K0rcUMH/UQUTDipeNDxU0k1ECC\nbzSW4cRynARiIU2gpXtdDaL41E/8gQXDerr/eG5nV1en4ROaG1lg3n0Aagiit9JE\nOOlolgHsAO9/kBYIFfKtlsIWEQKBgQC2AFshlg08UiTlvmUXxCF1YA6WXZrT5vcJ\nxzpBwERn6T32audvhgPEnnZrJ7mRBxJVx9i/wRpbukYNHPXtockNJYCNyi2uubMu\nYpFd3BH35oxplBPgXAuFc18RscJ/fcumUV4JPbWj5tnqw3BF7R9sbbgEzfv2lm7o\ne65cRd22OQKBgGzFzytNHzmPw1+z/lLABoKQngO+w/KgCGDb1qPWfD0fEYzmCP3/\nK4D1hBy+Y/AJx8MVTZESO/vaHHaRWH2iT5pDWAsTXQV3remH1V+N994PaRCEfeh/\nUm5K6d9aGgkYuQqcLlzaF/PbT1zeyOtdbehgJehGJIwrIBBev/fQlp7BAoGAZSFN\nghwevqXmWsKw6cPR06bMdEEPBzAPlR9e/6oWWKcCByrf7thIv7hNlL0+H5gOWBv0\nFJj4TH/07NRq0uBTFzr/c8okGDKXne6nV8AxO86ftwrRAJokzMKO0QY1TSJZRtFv\nrzLa+3gLHqf6euCH1XgiCIlsuFheyE/xUtR/ngECgYBUJ0j6RlHlA6rUVmpTstCS\n1TAh93iGwhnOIDR1th1vwE+N/TC1Hi+2zaSMkhAHCcFTrgTrG0hctNDCuo5EPfYF\n+Zk1v8Inyz9I4jnDDjphPKOo5bn5EYKTQwctt/Jpqd5HLSPLMalM7IVWc8gA/fhr\ntIRs912jmxMGHawYbmEBzQ==\n-----END PRIVATE KEY-----\n",
+  client_email: "tets-46786@appspot.gserviceaccount.com",
+  client_id: "107274186209831213197",
+  auth_uri: "https://accounts.google.com/o/oauth2/auth",
+  token_uri: "https://oauth2.googleapis.com/token",
+  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+  client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/tets-46786%40appspot.gserviceaccount.com"
+};
+
+var defaultProject = firebase.initializeApp(serviceAccount);
+var db = defaultProject.firestore();
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount)
+// });
+// const db = admin.firestore();
+
+
+
 let isDeviceDataSet = false;
 
 function App() {
   const [deviceData, setDeviceData] = React.useState();
+let data = {};
+  useEffect(()=>{
+     const docRef = db.collection('userDevice');
+    docRef.where('hash', '==', "676f64ff20eefabded41b65cac55b992").orderBy('viewedTime', 'desc').limit(5).get().then(function(documentSnapshot){
+      if (documentSnapshot.empty) {
+        console.log('No matching documents.');
+        return [];
+    }
+    data  = documentSnapshot.docs.map(x=> {
+      return x.data();
 
+    });
+console.log('data is'); console.log(data);
+    })
+    
+  }, []);
   const fingerprint = () => {
     if (window.requestIdleCallback && !isDeviceDataSet) {
-      requestIdleCallback(function () {
+      requestIdleCallback(function() {
         Fingerprint2.get(function (components) {
           console.log(components); // an array of components: {key: ..., value: ...}
           navigator.clipboard
@@ -129,6 +168,22 @@ function App() {
             setDeviceData(values);
           }
           var hash = Fingerprint2.x64hash128(values.join(""), 31);
+ 
+          var dataToPush = {};
+for (var i = 0; i < components.length; i++) {
+  if(components[i].key !== 'plugins'){
+  dataToPush[components[i].key] = components[i].value;
+  }
+}
+          dataToPush.viewedTime = new Date().toUTCString();
+          console.log(dataToPush);
+          const docRef= db.collection('userDevice').doc(uuidv4());
+          docRef.set(dataToPush).then(function(){
+            console.log('succedded');
+          }).catch(function(){
+            console.log('unable to push data');
+          })
+
           console.log(`hash is ${hash}`);
         });
       });

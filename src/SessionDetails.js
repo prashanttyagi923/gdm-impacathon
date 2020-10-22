@@ -48,7 +48,7 @@ function SessionDetails({ historyData }) {
                 </Row>
                 <Row>
                   <Col style={{ textAlign: "left" }}>
-                    <b>Browser Used</b>
+                    <b>User Agent</b>
                   </Col>
                   <Col style={{ textAlign: "left" }}>{elm.userAgent}</Col>
                 </Row>

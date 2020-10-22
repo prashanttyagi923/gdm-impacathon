@@ -7,11 +7,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { v4 as uuidv4 } from "uuid";
 import SessionDetails from "./SessionDetails";
 const browserSpecificKey = [
-  "userAgent",
-  "webdriver",
-  "webglVendorAndRenderer",
-  "webgl",
-  "adBlock",
+  // "userAgent",
+  // "webdriver",
+  // "webglVendorAndRenderer",
+  // "webgl",
+  // "adBlock",
 ];
 const displaySettings = [
   {
@@ -178,6 +178,9 @@ function App() {
           }
           setHash(Fingerprint2.x64hash128(values.join(""), 31));
 
+          var hashInfo = Fingerprint2.x64hash128(values.join(""), 31);
+          console.log(hashInfo);
+
           var dataToPush = {};
           for (var i = 0; i < components.length; i++) {
             if (components[i].key !== "plugins") {
@@ -185,6 +188,7 @@ function App() {
             }
           }
           dataToPush.viewedTime = new Date().toUTCString();
+          dataToPush.hash = hashInfo;
           const docRef = db.collection("userDevice").doc(uuidv4());
           docRef
             .set(dataToPush)
